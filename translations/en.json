@@ -1,0 +1,23 @@
+{
+  "_meta": {
+    "name": "English"
+  },
+  "screen": {
+    "choose": "Choose a cover in the editor",
+    "open": "Open",
+    "closed": "Closed",
+    "opening": "Opening",
+    "closing": "Closing",
+    "unavailable": "Unavailable"
+  },
+  "app": {
+    "name": "Shutter",
+    "summary": "A shutter as Home Assistant's tile draws it: up, stop, down and favourite positions of your own in one tile.",
+    "tile_name": "Shutter",
+    "tile_example": "Up, stop, down and favourites",
+    "favorites": "Favourites",
+    "favorites_hint": "Positions in percent (100 = open), in the order of the keys. What does not fit the width is left out at the end.",
+    "keys": "Up, stop, down",
+    "keys_hint": "Show the three keys."
+  }
+}

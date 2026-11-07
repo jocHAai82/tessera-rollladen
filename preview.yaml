@@ -1,0 +1,17 @@
+# Example data for the bench only, not measured values.
+tiles:
+  - tile: cover
+    name: Living room, at a favourite
+    sizes: [4x2, 2x1, 4x1]
+    data:
+      state: open
+      name: WZ-Rollläden
+      attributes: { current_position: 8 }
+  - tile: cover
+    name: Utility room, open
+    sizes: [4x2]
+    options: { favorites: ["65", "60", "55", "50", "21", "18"] }
+    data:
+      state: open
+      name: HWR-Rollladen
+      attributes: { current_position: 100 }

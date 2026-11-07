@@ -1,0 +1,23 @@
+{
+  "_meta": {
+    "name": "Deutsch"
+  },
+  "screen": {
+    "choose": "Rollladen im Editor wählen",
+    "open": "Geöffnet",
+    "closed": "Geschlossen",
+    "opening": "Öffnet",
+    "closing": "Schließt",
+    "unavailable": "Nicht verfügbar"
+  },
+  "app": {
+    "name": "Rollladen",
+    "summary": "Rollladen wie die Kachel in Home Assistant: Auf, Stopp, Ab und eigene Favoriten-Positionen in einer Kachel.",
+    "tile_name": "Rollladen",
+    "tile_example": "Auf, Stopp, Ab und Favoriten",
+    "favorites": "Favoriten",
+    "favorites_hint": "Positionen in Prozent (100 = offen), in der Reihenfolge der Tasten. Was nicht in die Breite passt, fällt hinten weg.",
+    "keys": "Auf, Stopp, Ab",
+    "keys_hint": "Die drei Tasten zeigen."
+  }
+}

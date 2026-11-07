@@ -1,0 +1,30 @@
+# Rollladen: a shutter as Home Assistant's tile card draws it with its features: the name and the position over a row
+# of keys (up, stop, down) and a row of favourite positions, the one it stands at in the accent. Every name, label and
+# hint below is a key into translations/<language>.json, part "app" (docs/MANIFEST.md).
+id: rollladen
+version: 0.1.0
+api: "0.15"
+icon: window-shutter
+maintainer: jocHAai82
+license: MIT
+stage: beta
+topics: [home]
+requires:
+  esphome: 2026.6.2
+boards: any
+flash_kb: 8
+permissions:
+  home_assistant_actions: [cover.open_cover, cover.close_cover, cover.stop_cover, cover.set_cover_position]
+
+tiles:
+  - id: cover
+    name: tile_name
+    icon: window-shutter
+    sizes: { min: 1x1, max: 8x8 }
+    memory: 4400
+    example: tile_example
+    domains: [cover]
+    attributes: [current_position]
+    options:
+      - { id: favorites, kind: text, multiple: 12, default: ["75", "62", "50", "45", "40", "30", "10", "8"], label: favorites, hint: favorites_hint }
+      - { id: keys, kind: toggle, default: true, label: keys, hint: keys_hint }
