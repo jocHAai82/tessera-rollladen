@@ -1,4 +1,5 @@
 #include "rollladen.h"
+#include "esphome/core/hal.h"
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -33,6 +34,7 @@ class CoverTile : public tessera::Tile {
 
   void create(const tessera::TileContext &c) override {
     parent_ = c.parent;
+    for (int &r : bg_role_) r = -1;
     width_ = c.width;
     height_ = c.height;
     entity_ = c.entity ? c.entity : "";
@@ -198,19 +200,36 @@ class CoverTile : public tessera::Tile {
     if (key_icon_[STOP]) ui::set_color(key_icon_[STOP], unavailable ? theme::SUBTLE : theme::INK);
     if (key_icon_[DOWN]) ui::set_color(key_icon_[DOWN], down_off_ ? theme::SUBTLE : theme::INK);
 
-    // The favourite it stands at, in the accent.
+    unavailable_ = unavailable;
+    paint_touch();
+  }
+
+  // What a finger chose shows at once in pale blue: a key for two seconds (up and down as long as the shutter runs
+  // that way), a favourite until the shutter stands there, then in the accent as the position it is at.
+  void paint_touch() {
+    const uint32_t now = millis();
+    if (pressed_ >= 0 && pressed_ < KEYS && now - pressed_at_ > 2000) pressed_ = -1;
+    if (pressed_ >= KEYS) {
+      const int i = pressed_ - KEYS;
+      if (position_ == fav_[i] || now - pressed_at_ > 90000 || state_word_ == "unavailable") pressed_ = -1;
+    }
+    for (int k = 0; k < KEYS; ++k) {
+      if (!key_[k]) continue;
+      const bool lit = pressed_ == k || (k == UP && state_word_ == "opening") || (k == DOWN && state_word_ == "closing");
+      bg(key_[k], lit ? theme::ACCENT_TINT : theme::BUTTON);
+    }
     for (int i = 0; i < shown_favs_; ++i) {
-      const bool here = !unavailable && position_ == fav_[i];
-      set_hidden(chip_[i], !here);
+      const bool here = !unavailable_ && position_ == fav_[i];
+      const bool chosen = pressed_ == KEYS + i;
+      set_hidden(chip_[i], !here && !chosen);
+      bg(chip_[i], here ? theme::ACCENT : theme::ACCENT_TINT);
       ui::set_color(chip_text_[i], here ? theme::ON_ACCENT : theme::INK);
     }
-    unavailable_ = unavailable;
   }
 
   void on_theme() override {
-    for (lv_obj_t *k : key_) if (k) lv_obj_set_style_bg_color(k, ui::color(theme::BUTTON), 0);
     if (row_) lv_obj_set_style_bg_color(row_, ui::color(theme::BUTTON), 0);
-    for (int i = 0; i < shown_favs_; ++i) lv_obj_set_style_bg_color(chip_[i], ui::color(theme::ACCENT), 0);
+    for (int &r : bg_role_) r = -1;
     fill_ = -1;
     on_tick(0);
   }
@@ -220,27 +239,44 @@ class CoverTile : public tessera::Tile {
     const tessera::Point p = tessera::tap_point();
     if (p.x < 0) return;
     if (key_rect_[UP].has(p.x, p.y)) {
-      if (!up_off_) tessera::action("cover.open_cover", entity_);
+      if (!up_off_ && tessera::action("cover.open_cover", entity_)) press(UP);
       return;
     }
     if (key_rect_[STOP].has(p.x, p.y)) {
-      tessera::action("cover.stop_cover", entity_);
+      if (tessera::action("cover.stop_cover", entity_)) press(STOP);
       return;
     }
     if (key_rect_[DOWN].has(p.x, p.y)) {
-      if (!down_off_) tessera::action("cover.close_cover", entity_);
+      if (!down_off_ && tessera::action("cover.close_cover", entity_)) press(DOWN);
       return;
     }
     for (int i = 0; i < shown_favs_; ++i) {
       if (!chip_rect_[i].has(p.x, p.y)) continue;
       JsonDocument d;
       d["position"] = fav_[i];
-      tessera::action("cover.set_cover_position", entity_, d.as<JsonVariantConst>());
+      if (tessera::action("cover.set_cover_position", entity_, d.as<JsonVariantConst>()) && position_ != fav_[i])
+        press(KEYS + i);
       return;
     }
   }
 
  private:
+  void press(int what) {
+    pressed_ = what;
+    pressed_at_ = millis();
+    paint_touch();
+  }
+
+  // A block's fill by its role, set only when it changes.
+  void bg(lv_obj_t *o, theme::Role role) {
+    int slot = -1;
+    for (int k = 0; k < KEYS; ++k) if (o == key_[k]) slot = k;
+    for (int i = 0; i < shown_favs_; ++i) if (o == chip_[i]) slot = KEYS + i;
+    if (slot < 0 || bg_role_[slot] == int(role)) return;
+    bg_role_[slot] = int(role);
+    lv_obj_set_style_bg_color(o, ui::color(role), 0);
+  }
+
   void set_fill(lv_obj_t *block, theme::Role role) {
     if (int(role) == fill_) return;
     fill_ = int(role);
@@ -264,6 +300,9 @@ class CoverTile : public tessera::Tile {
   int fav_[MAX_FAVS]{};
   int fav_count_ = 0, shown_favs_ = 0;
   int fill_ = -1;
+  int pressed_ = -1;  // a key (UP, STOP, DOWN) or KEYS + a favourite, -1 for none
+  uint32_t pressed_at_ = 0;
+  int bg_role_[KEYS + MAX_FAVS];
   lv_obj_t *icon_bg_{}, *icon_{}, *name_{}, *state_{}, *row_{};
   lv_obj_t *key_[KEYS]{}, *key_icon_[KEYS]{};
   Rect key_rect_[KEYS];

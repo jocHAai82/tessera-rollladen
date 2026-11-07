@@ -2,7 +2,7 @@
 # of keys (up, stop, down) and a row of favourite positions, the one it stands at in the accent. Every name, label and
 # hint below is a key into translations/<language>.json, part "app" (docs/MANIFEST.md).
 id: rollladen
-version: 0.1.0
+version: 0.1.1
 api: "0.15"
 icon: window-shutter
 maintainer: jocHAai82
